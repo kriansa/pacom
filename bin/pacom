@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+#
+# pacom - Pacman Companion
+#
+# This small program helps you by having all your external AUR dependencies in one place, where you
+# can manage, trust, recompile and then distribute to your Arch cluster.
+
+set -o pipefail
+
+# Pacom version. This function is replaced at build-time
+VERSION="$(< VERSION)-dev"
+
+# Load all required libs (replaced at build-time)
+cd "$(dirname "$0")/.." || exit 1
+# shellcheck disable=SC1090
+for file in lib/*.sh lib/**/*.sh; do test -f "$file" && source "$file"; done
+# /Load all required libs
+
+function help {
+	echo "Usage: $0 <COMMAND> [ARGUMENTS]"
+	echo ""
+	echo "A simple helper for managing PKGBUILDs from local or external sources."
+	echo "Use '$0 <COMMAND> --help' for each command usage description."
+	echo ""
+	echo "Commands:"
+	list-commands-descriptions
+	echo ""
+	echo "Options:"
+	echo "  -h, --help      Show this message"
+	echo "  -v, --version   Show the version number"
+}
+
+function main {
+	# The first parameter is the subcommand
+	local command=$1; shift
+	local first_arg=$1
+
+	if command-exists "$command"; then
+		# Ensure we load the configs for every comand beforehand
+		load-config-vars
+
+		if is-help-flag "$first_arg"; then
+			exec-command-help "$command"
+		else
+			# For command "init" we don't run config healthcheck because most likely the user hasn't
+			# set up their repos yet - so it would make no sense to validate whether those directories
+			# exist
+			test "$command" != "init" && config-healthcheck
+			exec-command "$command" "$@"
+		fi
+	elif is-help-flag "$command"; then
+		help
+	elif is-version-flag "$command"; then
+		echo "$VERSION"
+	else
+		error "Invalid command."
+		echo
+		help
+		exit 1
+	fi
+}
+
+# Load all needed global config variables this program needs
+function load-config-vars {
+	local XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
+	export PACOM_BASE_PATH="$XDG_DATA_HOME/pacom"
+	export GIT_REPO_PATH="$PACOM_BASE_PATH/git-db"
+	export SQLITE_DB_PATH="$GIT_REPO_PATH/pacom.db"
+	export PACMAN_REPO_NAME="pacom"
+	detect-pacman-repo-path
+
+	# Set the global PKGDEST variable for makepkg. This sets the output folder of the built package
+	export PKGDEST; PKGDEST="$(dirname "$PACMAN_REPO_PATH")"
+}
+
+# Try to detect the repo path set on pacman.conf, and if not configured, then use the default one
+function detect-pacman-repo-path {
+	while read -r key _ value; do
+		case $key=$value in
+			Server=file://*) local repo_path=${value#file://} ;;
+		esac
+	done < <(pacman-conf -r "$PACMAN_REPO_NAME" 2> /dev/null)
+
+	if [ -n "$repo_path" ]; then
+		PACMAN_REPO_PATH="$repo_path/$PACMAN_REPO_NAME.db.tar.gz"
+	else
+		PACMAN_REPO_PATH="$PACOM_BASE_PATH/pacman-repo/$PACMAN_REPO_NAME.db.tar.gz"
+	fi
+
+	export PACMAN_REPO_PATH
+}
+
+# Validates the application configuration. If there are any issues, prints out the error
+# troubleshooting and exits.
+function config-healthcheck {
+	if [ ! -w "$PACMAN_REPO_PATH" ]; then
+		error "The configured Pacman repo is either invalid or is not readable by your user!"
+		exit 1
+	fi
+
+	if ! pacman-conf -r "$PACMAN_REPO_NAME" > /dev/null 2>&1; then
+		error "The Pacman repository '$PACMAN_REPO_NAME' is not configured on /etc/pacman.conf"
+		exit 1
+	fi
+
+	if [ ! -w "$(dirname "$PACMAN_REPO_PATH")" ]; then
+		error "The path where your Pacman repo is located ($PACMAN_REPO_PATH) is not writable by your user!"
+		exit 1
+	fi
+
+	if [ ! -r "$GIT_REPO_PATH/.git" ]; then
+		error "The configured GIT_REPO_PATH ($GIT_REPO_PATH) is not a valid git repo or not readable by your user!"
+		exit 1
+	fi
+
+	if [ ! -w "$(dirname "$GIT_REPO_PATH")" ]; then
+		error "The configured GIT_REPO_PATH ($GIT_REPO_PATH) is not writable by your user!"
+		exit 1
+	fi
+
+	if [ ! -w "$SQLITE_DB_PATH" ]; then
+		error "The database file ($DB_PATH) is not writable by your user!"
+		exit 1
+	fi
+}
+
+main "$@"
