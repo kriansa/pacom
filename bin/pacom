@@ -17,10 +17,10 @@ for file in lib/*.sh lib/**/*.sh; do test -f "$file" && source "$file"; done
 # /Load all required libs
 
 function help {
-	echo "Usage: $0 <COMMAND> [ARGUMENTS]"
+	echo "Usage: pacom <COMMAND> [ARGUMENTS]"
 	echo ""
 	echo "A simple helper for managing PKGBUILDs from local or external sources."
-	echo "Use '$0 <COMMAND> --help' for each command usage description."
+	echo "Use 'pacom <COMMAND> --help' for each command usage description."
 	echo ""
 	echo "Commands:"
 	list-commands-descriptions
