@@ -4,7 +4,7 @@
 pkg-command "update" "Update packages from their external sources"
 
 function cmd::update::help {
-	echo "Usage: $0 update [OPTIONS] [<PKG> ...]"
+	echo "Usage: pacom update [OPTIONS] [<PKG> ...]"
 	echo ""
 	echo "Update the specified PKGs by pulling the remote git submodule."
 	echo ""

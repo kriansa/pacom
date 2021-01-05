@@ -4,7 +4,7 @@
 pkg-command "remove" "Uninstall and remove a package from this git repo"
 
 function cmd::remove::help {
-	echo "Usage: $0 remove [OPTIONS] [<PKG> ...]"
+	echo "Usage: pacom remove [OPTIONS] [<PKG> ...]"
 	echo ""
 	echo "Remove the specified PKGs from both the git and the pacman repositories."
 	echo ""

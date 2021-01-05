@@ -4,7 +4,7 @@
 pkg-command "install" "Install a package already present in the git repo"
 
 function cmd::install::help {
-	echo "Usage: $0 install [OPTIONS] [<PKG> ...]"
+	echo "Usage: pacom install [OPTIONS] [<PKG> ...]"
 	echo ""
 	echo "Install the specified PKGs."
 	echo ""

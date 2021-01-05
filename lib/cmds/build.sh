@@ -4,14 +4,14 @@
 pkg-command "build" "Build a package in the git repo"
 
 function cmd::build::help {
-	echo "Usage: $0 build [OPTIONS] [<PKG> ...]"
+	echo "Usage: pacom build [OPTIONS] [<PKG> ...]"
 	echo ""
 	echo "Builds the specified PKGs."
 	echo ""
 	echo "Options:"
 	echo "  -a, --all       Instead of passing each separate package as argument, you can use this"
 	echo "                  to build all packages from this git repository."
-	echo "  -i, --install   After building all specified packages, install them with $0 install."
+	echo "  -i, --install   After building all specified packages, install them with pacom install."
 	echo "  -f, --force     Force building and installing a package, even if it's been built."
 	echo "  -h, --help      Show this message."
 }

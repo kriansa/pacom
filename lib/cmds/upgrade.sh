@@ -5,7 +5,7 @@
 pkg-command "upgrade" "Updates, builds and install the listed packages"
 
 function cmd::upgrade::help {
-	echo "Usage: $0 upgrade [OPTIONS] [<PKG> ...]"
+	echo "Usage: pacom upgrade [OPTIONS] [<PKG> ...]"
 	echo ""
 	echo "Update, build and install all the specified PKGs"
 	echo ""

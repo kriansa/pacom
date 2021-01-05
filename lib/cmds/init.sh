@@ -4,7 +4,7 @@
 pkg-command "init" "Initialize a new Git & Pacman repository"
 
 function cmd::init::help {
-	echo "Usage: $0 init"
+	echo "Usage: pacom init"
 	echo ""
 	echo "Initialize a new repository for usage with Pacom."
 	echo ""

@@ -4,7 +4,7 @@
 pkg-command "list" "List packages currently managed by Pacom"
 
 function cmd::list::help {
-	echo "Usage: $0 list"
+	echo "Usage: pacom list"
 	echo ""
 	echo "List all packages managed by Pacom, along with their built and installed versions."
 	echo ""

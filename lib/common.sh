@@ -87,7 +87,7 @@ function parseopts {
 	local options=$1; shift
 	local longopts=$1; shift
 
-	local parsed; parsed=$(getopt --options="$options" --longoptions="$longopts" --name "$0" -- "$@")
+	local parsed; parsed=$(getopt --options="$options" --longoptions="$longopts" --name pacom -- "$@")
 	test $? -ne 0 && return 2
 
 	eval set -- "$parsed"

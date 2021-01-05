@@ -4,7 +4,7 @@
 pkg-command "add" "Add a new package to the git repo"
 
 function cmd::add::help {
-	echo "Usage: $0 add [OPTIONS] <URL> [<URL> ...]"
+	echo "Usage: pacom add [OPTIONS] <URL> [<URL> ...]"
 	echo ""
 	echo "Adds the package(s) to the git repository. the <URL> parameter can be any GIT URL, in the"
 	echo "following formats: https://, ssh:// or git://. If you want to add an AUR package, pass only"
