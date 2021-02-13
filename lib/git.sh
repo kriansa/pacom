@@ -77,7 +77,7 @@ function git::commit {
 	local message=$1
 
 	( cd "$GIT_REPO_PATH" && git add pacom.db && git commit -m "$message" \
-		&& git remote | xargs -L1 -I R git push R HEAD ) > /dev/null
+		&& git remote | xargs -I R git push R HEAD ) > /dev/null
 }
 
 function git::has_updates_for_package {
