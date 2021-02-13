@@ -83,7 +83,7 @@ function build_pkg {
 	# Build the package
 	test "$force" = "true" && local force_param="--force"
 	msg "Building package $pkg"
-	( cd "$build_path" && makepkg --clean --syncdeps --needed --noconfirm $force_param )
+	( cd "$build_path" && makepkg --clean --syncdeps --rmdeps --needed --noconfirm $force_param )
 
 	# Stop if the build failed
 	test $? -eq 0 || return 2
