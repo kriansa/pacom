@@ -65,11 +65,12 @@ function git::remove_submodule {
 
 		# Remove the git submodule completely
 		git submodule deinit -f "$pkg_name"
-		git rm -rf "$pkg_name"
 		rm -rf ".git/modules/$pkg_name"
 
-		# Remove the package locally
-		rm -rf "$pkg_name"
+		# Remove from local & from git -- although not strictly necessary, return statement is here to
+		# make explicit that we rely upon the return code of this call to decide whether this entire
+		# command succeded or failed
+		git rm -rf "$pkg_name" || return 1
 	) > /dev/null
 }
 

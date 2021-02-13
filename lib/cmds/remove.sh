@@ -65,7 +65,11 @@ function remove_pkg_repo {
 
 	# Remove package from git, then from DB, them commit the change
 	if db::package_exists "$pkg"; then
-		git::remove_submodule "$pkg"
+		if ! git::remove_submodule "$pkg"; then
+			error "Failed to remove $pkg locally. Please check the logs!"
+			return 1
+		fi
+
 		db::remove_package "$pkg"
 		git::commit ":fire: remove $pkg"
 		removed=1
