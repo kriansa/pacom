@@ -51,8 +51,8 @@ function update_pkg {
 	fi
 
 	# Signal 0 means "there has been some changes, please rebuild"
-   update_remote "$pkg" && return 0
-   update_upstream_vcs "$pkg" && return 0
+	update_remote "$pkg" && return 0
+	update_upstream_vcs "$pkg" && return 0
 
 	# Signal 2 means "no changes"
 	return 2
