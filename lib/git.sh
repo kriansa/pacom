@@ -63,13 +63,17 @@ function git::remove_submodule {
 	(
 		cd "$GIT_REPO_PATH" || return 1
 
-		# Remove the git submodule completely
-		git submodule deinit -f "$pkg_name"
-		rm -rf ".git/modules/$pkg_name"
-
 		# Remove from local & from git -- although not strictly necessary, return statement is here to
 		# make explicit that we rely upon the return code of this call to decide whether this entire
 		# command succeded or failed
+
+		# First we remove the git submodule completely
+		git submodule deinit -f "$pkg_name" || return 1
+		rm -rf ".git/modules/$pkg_name" || return 1
+
+		# Then we remove it from the working tree. We first make sure to set the flags w+x to all
+		# files/folders before we attempt to remove, otherwise it can fail to remove read-only entries.
+		chmod +x+w -R "$pkg_name"
 		git rm -rf "$pkg_name" || return 1
 	) > /dev/null
 }
