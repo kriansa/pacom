@@ -108,10 +108,10 @@ function add_pkg {
 	fi
 
 	msg2 "Downloading PKGBUILD for $pkg_name"
-	git::get_pkgbuild "$git_url" "$pkgbuild_path" | $EDITOR -R; status=$?
+	git::get_pkgbuild "$git_url" "$pkgbuild_path" | show_file_contents; status=$?
 	test $status -ne 0 && return 1
 
-   ask "Continue?" || return 2
+	ask "Continue?" || return 2
 
 	# Clone the submodule onto the "pkgname" directory
 	git::add_submodule "$git_url" "$pkg_name"
@@ -122,15 +122,48 @@ function add_pkg {
 	added_packages+=("$pkg_name")
 }
 
+# This function opens up the text editor so the user can see the contents of the PKGBUILD file
+# before accepting it. It tries to be smart enough by identifying the editor preference by looking
+# at $EDITOR env var, but it could be smarter and maybe look at some configuration or even
+# implementing our own terminal-based file viewer.
+function show_file_contents {
+	if [ -z "$EDITOR" ]; then
+		if command -v "vim" > /dev/null; then
+			EDITOR=vim
+		elif command -v "nano" > /dev/null; then
+			EDITOR=nano
+		else
+			error "No known text editor found. Please define one using the \$EDITOR environment variable."
+			exit 1
+		fi
+	fi
+
+	# If we have $EDITOR set, but it points nowhere
+	if ! command -v "$EDITOR" > /dev/null; then
+		error "No text editor found using the \$EDITOR environment variable!"
+		exit 1
+	fi
+
+	if [ "$EDITOR" = "nvim" ]; then
+		$EDITOR -R -
+	elif [[ "$EDITOR" == *"vim" ]]; then
+		$EDITOR -R --not-a-term -
+	elif [ "$EDITOR" = "nano" ]; then
+		$EDITOR -v -
+	else
+		$EDITOR -
+	fi
+}
+
 # Handling split-packages
 # -----------------------
 # The reason why this algo for fetching a pkgname is so complex is due to split-packages. This is a
-# feature on ABS that allows a single PKGBUILD to build several packages at once, leverating the
-# same build environment, sources, etc. Unfortunately, that also adds some complexity to package
-# management in general. One of them is that we can no longer assume that a PKGBUILD stands for "a"
-# package, but it could also point to multiple packages. That complexity adds up when we add support
-# for non-AUR repositories, which usually are monorepos full of PKGBUILDs and we can't easily
-# identify their pkgnames.
+# feature on ABS that allows a single PKGBUILD to build multiple packages at once, leveraging the
+# same metadata, sources, etc. Unfortunately, that also adds some complexity to package management
+# in general. One of them is that we can not easily identify a package name from a PKGBUILD, because
+# it's not "a" package, but rather it could refer to several. That complexity adds up when we add
+# support for non-AUR repositories, which are usually monorepos full of PKGBUILDs and we can't
+# easily identify their pkgnames.
 #
 # This is the rationale we use to name a package:
 #
