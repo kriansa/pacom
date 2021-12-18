@@ -117,7 +117,7 @@ function git::clean_repo {
 	local pkg_path="$GIT_REPO_PATH/$pkg_name"
 
 	msg2 "Cleaning up git repo of $pkg_name..."
-	( cd "$pkg_path" && git reset --hard HEAD && git clean -ffd ) > /dev/null
+	( cd "$pkg_path" && git reset --hard HEAD && git clean -ffdx ) > /dev/null
 }
 
 function git::discard_db_changes {
