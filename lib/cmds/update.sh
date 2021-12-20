@@ -85,56 +85,8 @@ function update_upstream_vcs {
 
 	# Updates on VCS packages are handled differently. Even if there are no changes on the PKGBUILD,
 	# there might be changes on the VCS upstream repo, so we need to check if it has updates as well.
-	is_vcs_package "$pkg" || return 2
-	vcs_package_has_updates "$pkg" || return 2
+	pkg::is_vcs "$pkg" || return 2
+	pkg::build_is_latest "$pkg" && return 2
 
 	ask "New update on upstream for VCS package $pkg. Update?" && return 0 || return 2
-}
-
-function is_vcs_package {
-	local pkg=$1
-	local vcs_regex=".*-(bzr|git|hg|svn)$"
-
-	[[ "$pkg" =~ $vcs_regex ]]
-}
-
-function vcs_package_has_updates {
-	local pkg=$1
-	local pkgbuild_dir; pkgbuild_dir="$(db::get_package_pkgbuild_dir "$pkg")"
-	local build_path="$GIT_REPO_PATH/$pkg/$pkgbuild_dir"
-
-	msg "Checking VCS updates for $pkg..."
-
-	# Get the current built version on the repo
-	current=$(repo::get_built_package_version "$pkg")
-
-	# Run makepkg to update the PKGBUILD pkgver
-	( cd "$build_path" && makepkg --nobuild --clean --cleanbuild --nocheck \
-		--needed --rmdeps --noconfirm --noprogressbar > /dev/null 2>&1 )
-
-	# Evaluates the PKGBUILD to get the version: It should have been changed by the makepkg above
-	# Copied from https://github.com/AladW/aurutils/blob/master/lib/aur-srcver
-	#
-	# How safe is this, by the way? Well, at the moment we end up sourcing the PKGBUILD, the user has
-	# already reviewed and accepted its inclusion on the repository, so there is consent already,
-	# since for building, makepkg will source it anyway. If it ever changes, it will be detected on
-	# the update process, before VCS update is triggered, so again, consent is given, hence no
-	# issues.
-	#
-	# shellcheck disable=SC2016
-	last=$(env -C "$build_path" -i bash -c '
-		PATH= source PKGBUILD
-
-		if [[ -v epoch ]]; then
-			fullver=$epoch:$pkgver-$pkgrel
-		else
-			fullver=$pkgver-$pkgrel
-		fi
-
-		echo "$fullver"')
-
-	# Clean all version changes done to the PKGBUILD by makepkg
-	git::clean_repo "$pkg"
-
-	test "$current" != "$last"
 }

@@ -41,9 +41,17 @@ function build_install {
 	local pkgs=("$@")
 	local built_packages=0
 
+	# Create the gnupg folder before start the build process. The performance hit of running this
+	# before each build is not impactful enough so we can keep doing it here. If it ever becomes too
+	# problematic we can consider a different alternative here.
+	gpg::start
+
 	for pkg in "${pkgs[@]}"; do
 		build_pkg "$pkg" "$opt_force" && ((built_packages+=1))
 	done
+
+	# Make sure we cleanup after using GPG
+	gpg::cleanup
 
 	if [ "$built_packages" -le 0 ]; then
 		msg "No packages built."
@@ -77,14 +85,19 @@ function build_pkg {
 		return 2
 	fi
 
+	if test "$force" = "false"; then
+		msg "Checking build version of package $pkg"
+
+		if pkg::build_is_latest "$pkg"; then
+			msg2 "Package $pkg is already built at its latest version."
+			msg2 "Use 'pacom build --force' to override."
+			return 0
+		fi
+	fi
+
 	local pkgbuild_dir; pkgbuild_dir="$(db::get_package_pkgbuild_dir "$pkg")"
 	local build_path="$GIT_REPO_PATH/$pkg/$pkgbuild_dir"
 	local tmp_error; tmp_error="$(mktemp)"
-
-	# Create the gnupg folder before start the build process. The performance hit of running this
-	# before each build is not impactful enough so we can keep doing it here. If it ever becomes too
-	# problematic we can consider a different alternative here.
-	gpg::start
 
 	# Build the package
 	test "$force" = "true" && local force_param="--force"
@@ -100,8 +113,8 @@ function build_pkg {
 	)
 	status=$?
 
-	# Make sure we cleanup after using GPG
-	gpg::cleanup
+	# Synchronize changes on GPG, if any
+	gpg::sync_db
 
 	if grep --quiet 'One or more PGP signatures could not be verified' "$tmp_error"; then
 		msg2 "It seems that you need to import some PGP key(s) so this package can be built."
