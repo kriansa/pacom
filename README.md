@@ -5,10 +5,10 @@ A _very small_ AUR package manager for Arch Linux with support to **private PKGB
 
 ```sh
 # Manually approve a new package
-$ pacom add https://github.com/myself/MY_PKGBUILDs#my-custom-package/v1.0/PKGBUILD
+> pacom add https://github.com/myself/MY_PKGBUILDs#my-custom-package/v1.0/PKGBUILD
 
 # Now, install it without questions asked
-$ pacom build --install --all
+> pacom build --install --all
 ```
 
 Pacom relies on a local package database to store the trusted packages and their versions. Once a
@@ -21,8 +21,8 @@ need to be at the root path) and just specify it when adding to Pacom.
 
 ## Non features
 
-Pacom philosophy is to be a simple program, very close to what one would do if they didn't have a
-AUR helper installed (`git pull && makepkg`).
+Pacom philosophy is to be a single-responsibility program, very close to what one would do if they
+didn't have a AUR helper installed (`git pull && makepkg`).
 
 It is meant to be a separate program, and not a "all-in-one" that wraps Pacman commands. It targets
 the more advanced users that understand and will benefit from the two applications individually.
@@ -35,6 +35,7 @@ as the [aur web][aur-web] or [aurutils][aurutils].
 * Support for packages not listed on AUR, such as PKGBUILDs found on Github
 * Package version locking\*
 * Uses a separate Pacman repository
+* Uses a separate GPG home repository to keep your own GNUPGHOME clean
 * Remove command actually delete package files from the Pacman repo
 * Support for split-packages (_see `pacom add --help` for more info_)
 * No untrusted PKGBUILD sourcing
@@ -43,6 +44,23 @@ as the [aur web][aur-web] or [aurutils][aurutils].
 * Well-documented interface: just type `pacom [<subcommand>] --help` when in doubt :memo:
 * Shipped as a single-file: if you want, you can just download the binary and include it on your
   dotfiles.
+
+## What's new on V2
+
+Pacom now uses a separate GNUPGHOME database. This means that you no longer need to pollute your own
+GNUPGHOME by trusting keys from build repositories, making it hard to idenfity real people you
+communicate with. Now, if a build fails due to a missing GPG key, you can simply add the key to
+Pacom's PGP trust database (very similarly to what you already know) by:
+
+```sh
+> pacom gpg --recv-keys <packager_key>
+```
+
+And that's it. The trust database is already synchronized to your git database, so as long as you
+have a remote configured, every change in PGP trust will be automatically pushed.
+
+This is a breaking change. If you want the previous behavior back, you can export the environment
+variable `USE_SYSTEM_GPG` and all `pacom` commands will use the user GNUPGHOME instead.
 
 ### Package version locking?
 
@@ -67,7 +85,20 @@ package manager asking you to approve that PKGBUILD.
    you install it then you can manage its installation within Pacom itself (inception?)
 2. Create the git and pacman repositories by running `pacom init`
 3. Make sure you follow the steps described by the output of that command
-4. _Optionally_, you can setup a remote for syncing the changes in your git-db
+4. _Optionally_ but recommended, you can setup a remote for syncing the changes in your git-db. That
+	 can be done by cd-ing into pacom git-db and setting up a normal git remote.
+
+## Configuration
+
+Pacom will run with just the steps above. However, there are some advanced settings that are
+configurable and here they are documented, just in case. These configuration are done by setting
+environment variables, so if you really need them, make sure they are exported on your shell before
+you run any `pacom` subcommand.
+
+* `PACOM_BASE_PATH` - By default, `pacom` will setup its databases on `$XDG_DATA_HOME/pacom` or
+	`$HOME/.local/share/pacom`. Set this variable if you want it on a different path.
+* `USE_SYSTEM_GPG` - Use your system's `GNUPGHOME` instead of the one exclusive for pacom-managed
+	packages. This is the default on v1.
 
 ## Releasing
 

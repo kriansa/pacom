@@ -116,7 +116,7 @@ function add_pkg {
 	# Clone the submodule onto the "pkgname" directory
 	git::add_submodule "$git_url" "$pkg_name"
 	db::add_package "$pkg_name" "$git_url" "$pkgbuild_path"
-	git::commit ":sparkles: add $pkg_name"
+	git::commit_db ":sparkles: add $pkg_name"
 
 	msg "Added $pkg_name"
 	added_packages+=("$pkg_name")

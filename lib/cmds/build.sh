@@ -79,14 +79,38 @@ function build_pkg {
 
 	local pkgbuild_dir; pkgbuild_dir="$(db::get_package_pkgbuild_dir "$pkg")"
 	local build_path="$GIT_REPO_PATH/$pkg/$pkgbuild_dir"
+	local tmp_error; tmp_error="$(mktemp)"
+
+	# Create the gnupg folder before start the build process. The performance hit of running this
+	# before each build is not impactful enough so we can keep doing it here. If it ever becomes too
+	# problematic we can consider a different alternative here.
+	gpg::start
 
 	# Build the package
 	test "$force" = "true" && local force_param="--force"
 	msg "Building package $pkg"
-	( cd "$build_path" && makepkg --clean --syncdeps --rmdeps --needed --noconfirm $force_param )
+	(
+		cd "$build_path" || exit 1
+
+		# This `script` command is so we can get the makepkg colored output both on terminal as well as
+		# in a separate file for analyzing it later
+		# See: https://superuser.com/questions/352697/preserve-colors-while-piping-to-tee
+		script -efq "$tmp_error" -c \
+			"makepkg --clean --syncdeps --rmdeps --needed --noconfirm $force_param"
+	)
+	status=$?
+
+	# Make sure we cleanup after using GPG
+	gpg::cleanup
+
+	if grep --quiet 'One or more PGP signatures could not be verified' "$tmp_error"; then
+		msg2 "It seems that you need to import some PGP key(s) so this package can be built."
+		msg2 "You must add them using 'pacom gpg' commandline and try building again."
+		rm "$tmp_error"
+	fi
 
 	# Stop if the build failed
-	test $? -eq 0 || return 2
+	test $status -eq 0 || return 2
 
 	# Add the built package to the pacman repo
 	while IFS= read -r built_pkg_name; do

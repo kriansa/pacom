@@ -63,7 +63,7 @@ function main {
 # Load all needed global config variables this program needs
 function load-config-vars {
 	local XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
-	export PACOM_BASE_PATH="$XDG_DATA_HOME/pacom"
+	export PACOM_BASE_PATH="${PACOM_BASE_PATH:-$XDG_DATA_HOME/pacom}"
 	export GIT_REPO_PATH="$PACOM_BASE_PATH/git-db"
 	export SQLITE_DB_PATH="$GIT_REPO_PATH/pacom.db"
 	export PACMAN_REPO_NAME="pacom"

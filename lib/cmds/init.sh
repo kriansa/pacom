@@ -9,7 +9,9 @@ function cmd::init::help {
 	echo "Initialize a new repository for usage with Pacom."
 	echo ""
 	echo "By default, it creates a git and a Pacman repository at \$XDG_DATA_HOME/pacom or"
-	echo "\$HOME/.local/share/pacom if the XDG variable is not set."
+	echo "\$HOME/.local/share/pacom if the XDG variable is not set. You can still override it with"
+	echo "a custom one by setting the environment variable PACOM_BASE_PATH, but you need to export"
+	echo "that variable for every pacom subcommand as well."
 	echo ""
 	echo "Also, after pacom has created the Pacman repository, you will need to add it to Pacman's"
 	echo "config file at /etc/pacman.conf - You will be asked to do it right after the command is run."
@@ -46,7 +48,7 @@ function initialize_git_repo {
 			[pacom]: https://github.com/kriansa/pacom
 		EOF
 		git add README.md
-		git::commit ":tada: initialize repository"
+		git::commit_db ":tada: initialize repository"
 	)
 
 	msg "Git database initialized successfully!"
@@ -55,7 +57,7 @@ function initialize_git_repo {
 
 function initialize_pacman_repo {
 	if [ -f "$PACMAN_REPO_PATH" ]; then
-		error "You already have a Pacman repository at '$PACMAN_REPO_PATH'"
+		error "You already have a Pacman repository named 'pacom' at '$PACMAN_REPO_PATH'"
 		msg2 "Make sure you are not using it or remove the folder if you want to start from scratch."
 		return 1
 	fi

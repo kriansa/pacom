@@ -71,7 +71,7 @@ function remove_pkg_repo {
 		fi
 
 		db::remove_package "$pkg"
-		git::commit ":fire: remove $pkg"
+		git::commit_db ":fire: remove $pkg"
 		removed=1
 	fi
 

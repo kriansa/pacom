@@ -74,7 +74,7 @@ function update_remote {
 	ask "Proceed?" || return 2
 	git::update_repo "$pkg"
 	local current_ver; current_ver=$(git::cloned_repo_revision "$pkg")
-	git::commit ":arrow_up: update $pkg to $current_ver"
+	git::commit_db ":arrow_up: update $pkg to $current_ver"
 
 	# Signal that means "there has been changes, let's rebuild"
 	return 0

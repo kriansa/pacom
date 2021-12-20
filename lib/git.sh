@@ -78,11 +78,22 @@ function git::remove_submodule {
 	) > /dev/null
 }
 
-function git::commit {
+function git::commit_db {
 	local message=$1
 
 	( cd "$GIT_REPO_PATH" && git add pacom.db && git commit -m "$message" \
 		&& git remote | xargs -I R git push R HEAD ) > /dev/null
+}
+
+function git::commit_gpg {
+	local message=$1
+
+	(
+		cd "$GIT_REPO_PATH" || return 1
+		git add gpg-keys.asc 2>&1 || return
+
+		git commit -m "$message" && git remote | xargs -I R git push R HEAD
+	) > /dev/null
 }
 
 function git::has_updates_for_package {
