@@ -25,7 +25,7 @@ function pkg::get_build_version {
 
 	# Run makepkg to update the PKGBUILD pkgver for vcs packages
 	pkg::is_vcs "$pkg" && ( cd "$build_path" && \
-		makepkg --nobuild --clean --cleanbuild --nodeps --noconfirm > /dev/null 2>&1 )
+		makepkg --nobuild --clean --cleanbuild --syncdeps --rmdeps --noconfirm > /dev/null 2>&1 )
 
 	# Evaluates the PKGBUILD to get the version: It should have been changed by the makepkg above
 	# Copied from https://github.com/AladW/aurutils/blob/master/lib/aur-srcver
