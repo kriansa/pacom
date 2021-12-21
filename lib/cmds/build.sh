@@ -41,17 +41,9 @@ function build_install {
 	local pkgs=("$@")
 	local built_packages=0
 
-	# Create the gnupg folder before start the build process. The performance hit of running this
-	# before each build is not impactful enough so we can keep doing it here. If it ever becomes too
-	# problematic we can consider a different alternative here.
-	gpg::start
-
 	for pkg in "${pkgs[@]}"; do
 		build_pkg "$pkg" "$opt_force" && ((built_packages+=1))
 	done
-
-	# Make sure we cleanup after using GPG
-	gpg::cleanup
 
 	if [ "$built_packages" -le 0 ]; then
 		msg "No packages built."
@@ -84,6 +76,9 @@ function build_pkg {
 		error "Package $pkg not found!"
 		return 2
 	fi
+
+	# Create GPG metadata before starting the build process
+	gpg::start
 
 	if test "$force" = "false"; then
 		msg "Checking build version of package $pkg"

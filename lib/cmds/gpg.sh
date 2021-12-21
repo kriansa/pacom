@@ -23,5 +23,5 @@ function cmd::gpg::help {
 function cmd::gpg {
 	gpg::start
 	gpg "$@"
-	gpg::cleanup
+	gpg::sync_db
 }
